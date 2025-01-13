@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require("../models/User");
 const generateRoutine = require("../services/generateRoutine");
 const getRoutinesByKakaoId = require("../services/getRoutinesByKakaoId");
-const deleteRoutineByKakaoId = require("../services/deleteRoutinesByKakaoId");
+const deleteRoutineById = require("../services/deleteRoutinesByKakaoId");
 
 
 // POST /api/routines
@@ -39,20 +39,33 @@ router.get("/routines/:kakaoId", async (req, res) => {
 });
 
 
-// 루틴 삭제
-router.delete("/routines/:kakaoId/:routineId", async (req, res) => {
-    try {
-      const { kakaoId, routineId } = req.params;
-      const result = await deleteRoutineByKakaoId(kakaoId, routineId);
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(404).json(result);
-      }
-    } catch (err) {
-      res.status(500).json({ error: "Failed to delete routine" });
-    }
-});
+// routine 삭제
   
+router.delete("/routines/delete", async (req, res) => {
+  const kakaoId = req.body.kakaoId; // 요청 본문에서 kakaoId 가져오기
+  const routineId = req.body.routineId; // URL에서 routineId 가져오기
+
+  console.log("Headers:", req.headers); // 요청 헤더 확인
+  console.log("Body:", req.body); // 요청 본문 확인
+
+  console.log("Received kakaoId:", kakaoId);
+  console.log("Received routineId:", routineId);
+
+  if (!kakaoId || !routineId) {
+    return res.status(400).json({ message: "Missing kakaoId or routineId" });
+  }
+
+  try {
+    const result = await deleteRoutineById(kakaoId, routineId);
+    if (result.success) {
+      return res.status(200).json({ message: result.message });
+    } else {
+      return res.status(404).json({ message: result.message });
+    }
+  } catch (err) {
+    console.error("Error deleting routine:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 module.exports = router;
